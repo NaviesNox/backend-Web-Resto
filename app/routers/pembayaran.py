@@ -81,3 +81,21 @@ async def delete_pembayaran(
     db.delete(db_pembayaran)
     db.commit()
     return None
+
+
+@router.get("/{pembayaran_id}/resi", response_model=PembayaranResponse)
+async def get_resi_pembayaran(
+    pembayaran_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(check_role_permission([UserRole.ADMIN, UserRole.MANAGER, UserRole.KASIR]))
+):
+    """Ambil data lengkap untuk cetak resi pembayaran."""
+    pembayaran = (
+        db.query(Pembayaran)
+        .options(*_pembayaran_options())
+        .filter(Pembayaran.id == pembayaran_id)
+        .first()
+    )
+    if not pembayaran:
+        raise HTTPException(status_code=404, detail="Pembayaran tidak ditemukan")
+    return pembayaran
